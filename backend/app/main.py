@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth.routes import router as auth_router
 from app.core.config import get_settings
 from app.core.error_handlers import register_exception_handlers
-from app.database.bootstrap import initialize_database, seed_roles
+from app.database.bootstrap import initialize_database, seed_initial_admin, seed_roles
 from app.enrollments.routes import router as enrollments_router
 from app.grades.routes import router as grades_router
 from app.periods.routes import router as periods_router
@@ -27,6 +27,11 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
 
 	if settings.is_production:
 		seed_roles()
+		seed_initial_admin(
+			settings.bootstrap_admin_email,
+			settings.bootstrap_admin_password,
+			settings.bootstrap_admin_name,
+		)
 	else:
 		initialize_database()
 	yield

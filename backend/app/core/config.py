@@ -36,6 +36,9 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("APP_CORS_ORIGINS", "FRONTEND_ORIGIN"),
     )
+    bootstrap_admin_email: str | None = Field(default=None, validation_alias="BOOTSTRAP_ADMIN_EMAIL")
+    bootstrap_admin_password: str | None = Field(default=None, validation_alias="BOOTSTRAP_ADMIN_PASSWORD")
+    bootstrap_admin_name: str = Field(default="Administrador inicial", validation_alias="BOOTSTRAP_ADMIN_NAME")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
@@ -73,6 +76,8 @@ class Settings(BaseSettings):
             raise ValueError("APP_COOKIE_SECURE debe ser true en production")
         if self.is_production and not self.cors_origins:
             raise ValueError("APP_CORS_ORIGINS es obligatorio en production")
+        if bool(self.bootstrap_admin_email) != bool(self.bootstrap_admin_password):
+            raise ValueError("BOOTSTRAP_ADMIN_EMAIL y BOOTSTRAP_ADMIN_PASSWORD deben configurarse juntos")
 
 
 @lru_cache
