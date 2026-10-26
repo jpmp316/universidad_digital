@@ -1,0 +1,1 @@
+"""Reports are read-only projections and do not require an ORM entity."""

@@ -1,0 +1,1 @@
+"""University Digital backend application package."""

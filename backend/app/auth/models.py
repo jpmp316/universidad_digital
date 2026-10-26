@@ -1,0 +1,1 @@
+"""Authentication has no persisted ORM entity because sessions are stateless JWT cookies."""
