@@ -1,6 +1,6 @@
 """Authentication endpoints."""
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from secrets import token_urlsafe
 from sqlalchemy.orm import Session
 
@@ -28,14 +28,16 @@ def _set_auth_cookie(response: Response, token: str) -> None:
         secure=settings.cookie_secure,
         samesite=settings.cookie_samesite,
     )
+    csrf_token = token_urlsafe(32)
     response.set_cookie(
         key=CSRF_COOKIE_NAME,
-        value=token_urlsafe(32),
+        value=csrf_token,
         max_age=settings.access_token_expire_minutes * 60,
         httponly=False,
         secure=settings.cookie_secure,
         samesite=settings.cookie_samesite,
     )
+    response.headers["X-CSRF-Token"] = csrf_token
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -63,7 +65,10 @@ def logout(response: Response) -> None:
 
 
 @router.get("/me", response_model=UserResponse)
-def me(current_user: User = Depends(get_current_user)) -> UserResponse:
+def me(request: Request, response: Response, current_user: User = Depends(get_current_user)) -> UserResponse:
     """Return the current public user profile."""
 
+    csrf_token = request.cookies.get(CSRF_COOKIE_NAME)
+    if csrf_token:
+        response.headers["X-CSRF-Token"] = csrf_token
     return UserResponse.model_validate(user_response_data(current_user))

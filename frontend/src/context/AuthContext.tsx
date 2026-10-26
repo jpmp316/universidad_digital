@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { authApi } from "../api/endpoints";
 import type { User } from "../api/types";
-import { getApiErrorMessage } from "../api/client";
+import { getApiErrorMessage, storeCsrfToken } from "../api/client";
 import { AuthContext } from "./auth-context";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -15,8 +15,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restoreSession = async () => {
       try {
         const response = await authApi.me();
+        storeCsrfToken(response.headers["x-csrf-token"] ?? null);
         if (mounted) setUser(response.data);
       } catch {
+        storeCsrfToken(null);
         if (mounted) setUser(null);
       } finally {
         if (mounted) setIsLoading(false);
@@ -24,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     const expireSession = () => {
       if (mounted) {
+        storeCsrfToken(null);
         setUser(null);
         setError("Tu sesión expiró. Vuelve a iniciar sesión.");
       }
@@ -40,9 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const response = await authApi.login({ email, password });
+      storeCsrfToken(response.headers["x-csrf-token"] ?? null);
       setUser(response.data);
       return response.data;
     } catch (requestError) {
+      storeCsrfToken(null);
       const message = getApiErrorMessage(requestError);
       setError(message);
       throw new Error(message);
@@ -65,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } finally {
+      storeCsrfToken(null);
       setUser(null);
     }
   };

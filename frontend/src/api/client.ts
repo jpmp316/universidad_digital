@@ -2,12 +2,10 @@ import axios, { AxiosError } from "axios";
 
 import type { ApiError } from "./types";
 
-const csrfCookieName = "csrf_token";
+let csrfToken: string | null = null;
 
-function readCookie(name: string): string | null {
-  const cookies = document.cookie.split("; ");
-  const cookie = cookies.find((item) => item.startsWith(`${name}=`));
-  return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
+export function storeCsrfToken(token: string | null): void {
+  csrfToken = token;
 }
 
 export function getApiErrorMessage(error: unknown): string {
@@ -29,7 +27,6 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const method = config.method?.toUpperCase();
   if (method && ["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-    const csrfToken = readCookie(csrfCookieName);
     if (csrfToken) config.headers.set("X-CSRF-Token", csrfToken);
   }
   return config;

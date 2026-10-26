@@ -44,6 +44,7 @@ app.add_middleware(
 	allow_credentials=True,
 	allow_methods=["GET", "POST", "PUT", "DELETE"],
 	allow_headers=["Content-Type", "X-CSRF-Token"],
+	expose_headers=["X-CSRF-Token"],
 )
 
 register_exception_handlers(app)

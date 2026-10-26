@@ -39,10 +39,11 @@ La UI no replica reglas de autorización del backend. Los guards mejoran la nave
 
 1. `AuthProvider` consulta `GET /auth/me` al cargar la SPA.
 2. Login consume `POST /auth/login` con `withCredentials: true`.
-3. FastAPI establece `access_token` como cookie `HttpOnly` y `csrf_token` como cookie legible.
-4. Axios adjunta automáticamente `X-CSRF-Token` en `POST`, `PUT`, `PATCH` y `DELETE`.
-5. Un `401` dispara el evento de sesión expirada y el contexto limpia el usuario.
-6. Logout consume `POST /auth/logout` y elimina el estado local de sesión.
+3. FastAPI establece `access_token` como cookie `HttpOnly` y `csrf_token` como cookie double-submit.
+4. Para permitir el flujo entre Vercel y Render, la API entrega el token CSRF en la cabecera `X-CSRF-Token` al iniciar sesión y al restaurar la sesión con `/auth/me`; CORS expone esa cabecera al frontend.
+5. Axios guarda el token CSRF solo en memoria y adjunta `X-CSRF-Token` en `POST`, `PUT`, `PATCH` y `DELETE`. Las cookies se envían mediante `withCredentials`.
+6. Un `401` dispara el evento de sesión expirada y el contexto limpia el usuario y el token CSRF en memoria.
+7. Logout consume `POST /auth/logout` y elimina el estado local de sesión.
 
 El frontend nunca lee, guarda ni expone el JWT. No usa `localStorage` ni `sessionStorage` para autenticación.
 
